@@ -18,7 +18,7 @@ const startServer = async () => {
 };
 (async () => {
   startServer();
-  //   seedSuperAdmin();
+  // seedAdmin();
 })();
 
 process.on("SIGTERM", (err) => {
