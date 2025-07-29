@@ -8,7 +8,7 @@ export enum IsWalletActive {
 
 export interface IWallet {
   _id?: Types.ObjectId;
-  balance: string;
+  balance: number;
   status?: IsWalletActive;
   ownerType?: Role;
   owner: Types.ObjectId;

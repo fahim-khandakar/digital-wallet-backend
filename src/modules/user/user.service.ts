@@ -41,7 +41,7 @@ export const createUser = async (payload: Partial<IUser>) => {
 
     const createdUser = newUser[0];
 
-    await Wallet.create(
+    const newWallet = await Wallet.create(
       [
         {
           balance: 50,
@@ -50,6 +50,14 @@ export const createUser = async (payload: Partial<IUser>) => {
           status: IsActive.ACTIVE,
         },
       ],
+      { session }
+    );
+
+    const createdWallet = newWallet[0];
+
+    await User.updateOne(
+      { _id: createdUser._id },
+      { wallet: createdWallet._id },
       { session }
     );
 

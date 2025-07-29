@@ -12,6 +12,6 @@ export interface IUser {
   isActive?: IsActive;
   isVerified?: boolean;
   role: Role;
-  wallet: Types.ObjectId;
+  wallet?: Types.ObjectId;
   transactions?: Types.ObjectId[];
 }

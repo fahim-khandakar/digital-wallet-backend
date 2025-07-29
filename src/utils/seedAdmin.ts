@@ -1,7 +1,9 @@
 import bcrypt from "bcryptjs";
 import { envVars } from "../config/env";
-import { IUser, Role } from "../modules/user/user.interface";
+import { IUser } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
+import { Wallet } from "../modules/wallet/wallet.model"; // make sure this path is correct
+import { Role, IsActive } from "../shared/types"; // make sure IsActive is imported
 
 export const seedAdmin = async () => {
   try {
@@ -30,9 +32,20 @@ export const seedAdmin = async () => {
     };
 
     const superAdmin = await User.create(payload);
-    console.log("Super Admin Created Successfully! \n");
+
+    const wallet = await Wallet.create({
+      balance: 50,
+      owner: superAdmin._id,
+      ownerType: superAdmin.role,
+      status: IsActive.ACTIVE,
+    });
+
+    superAdmin.wallet = wallet._id;
+    await superAdmin.save();
+
+    console.log("Super Admin Created Successfully with Wallet! \n");
     console.log(superAdmin);
   } catch (error) {
-    console.log(error);
+    console.log("Failed to seed admin:", error);
   }
 };

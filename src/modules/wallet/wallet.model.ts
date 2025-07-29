@@ -4,7 +4,7 @@ import { IsActive, Role } from "../../shared/types";
 
 const walletSchema = new Schema<IWallet>(
   {
-    balance: { type: String, required: true },
+    balance: { type: Number, required: true },
     status: {
       type: String,
       enum: Object.values(IsActive),

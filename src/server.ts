@@ -2,6 +2,7 @@ import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
 import { envVars } from "./config/env";
+import { seedAdmin } from "./utils/seedAdmin";
 
 let server: Server;
 const startServer = async () => {
@@ -18,7 +19,7 @@ const startServer = async () => {
 };
 (async () => {
   startServer();
-  // seedAdmin();
+  seedAdmin();
 })();
 
 process.on("SIGTERM", (err) => {
