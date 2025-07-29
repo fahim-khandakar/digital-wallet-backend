@@ -55,16 +55,16 @@ export const createUser = async (payload: Partial<IUser>) => {
 
     const createdWallet = newWallet[0];
 
-    await User.updateOne(
-      { _id: createdUser._id },
+    const updatedUser = await User.findByIdAndUpdate(
+      createdUser._id,
       { wallet: createdWallet._id },
-      { session }
+      { session, new: true }
     );
 
     await session.commitTransaction();
     session.endSession();
 
-    return createdUser;
+    return updatedUser;
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

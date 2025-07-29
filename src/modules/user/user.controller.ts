@@ -14,7 +14,8 @@ const createUser = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
-      message: "User Created Successfully",
+      message:
+        "Your account has been successfully created with a complimentary balance of 50 Taka!",
       data: user,
     });
   }

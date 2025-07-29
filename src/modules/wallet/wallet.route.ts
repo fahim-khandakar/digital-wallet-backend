@@ -37,4 +37,4 @@ router.patch(
   WalletControllers.updateWallet
 );
 
-export const UserRoutes = router;
+export const WalletRoutes = router;
