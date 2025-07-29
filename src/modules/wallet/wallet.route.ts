@@ -11,17 +11,17 @@ import {
 const router = Router();
 
 router.post(
-  "/register",
+  "/create-wallet",
   validateRequest(createWalletZodSchema),
   WalletControllers.createWallet
 );
 router.get(
-  "/all-users",
+  "/all-wallets",
   checkAuth(Role.ADMIN),
   WalletControllers.getAllWallets
 );
 router.get(
-  "/my",
+  "/my-wallet",
   checkAuth(...Object.values(Role)),
   WalletControllers.getMyWallet
 );
