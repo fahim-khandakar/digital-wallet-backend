@@ -1,15 +1,5 @@
 import { Types } from "mongoose";
-
-export enum Role {
-  ADMIN = "ADMIN",
-  USER = "USER",
-  AGENT = "AGENT",
-}
-
-export enum IsActive {
-  ACTIVE = "ACTIVE",
-  BLOCKED = "BLOCKED",
-}
+import { IsActive, Role } from "../../shared/types";
 
 export interface IUser {
   _id?: Types.ObjectId;
@@ -22,6 +12,6 @@ export interface IUser {
   isActive?: IsActive;
   isVerified?: boolean;
   role: Role;
-  wallet?: Types.ObjectId;
+  wallet: Types.ObjectId;
   transactions?: Types.ObjectId[];
 }

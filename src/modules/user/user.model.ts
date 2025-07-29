@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
-import { IsActive, IUser, Role } from "./user.interface";
+import { IUser } from "./user.interface";
+import { IsActive, Role } from "../../shared/types";
 
 const userSchema = new Schema<IUser>(
   {
@@ -20,7 +21,7 @@ const userSchema = new Schema<IUser>(
       default: IsActive.ACTIVE,
     },
     isVerified: { type: Boolean, default: false },
-    wallet: { type: Schema.Types.ObjectId, ref: "", required: true },
+    wallet: { type: Schema.Types.ObjectId, ref: "Wallet", required: true },
     transactions: { type: [Schema.Types.ObjectId], default: [] },
   },
   {
