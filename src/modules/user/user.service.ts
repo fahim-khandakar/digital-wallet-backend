@@ -5,13 +5,14 @@ import { envVars } from "../../config/env";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
 import AppError from "../../error helpers/appError";
-import { Role } from "../../shared/types";
+import { IsActive, Role } from "../../shared/types";
+import { Wallet } from "../wallet/wallet.model";
+import mongoose from "mongoose";
 
-const createUser = async (payload: Partial<IUser>) => {
+export const createUser = async (payload: Partial<IUser>) => {
   const { email, password, ...rest } = payload;
 
   const isUserExist = await User.findOne({ email });
-
   if (isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
   }
@@ -21,13 +22,46 @@ const createUser = async (payload: Partial<IUser>) => {
     Number(envVars.BCRYPT_SALT_ROUND)
   );
 
-  const user = await User.create({
-    email,
-    password: hashedPassword,
-    ...rest,
-  });
+  const session = await mongoose.startSession();
+  let newUser;
 
-  return user;
+  try {
+    session.startTransaction();
+
+    newUser = await User.create(
+      [
+        {
+          email,
+          password: hashedPassword,
+          ...rest,
+        },
+      ],
+      { session }
+    );
+
+    const createdUser = newUser[0];
+
+    await Wallet.create(
+      [
+        {
+          balance: 50,
+          owner: createdUser._id,
+          ownerType: createdUser.role,
+          status: IsActive.ACTIVE,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return createdUser;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 };
 
 const updateUser = async (

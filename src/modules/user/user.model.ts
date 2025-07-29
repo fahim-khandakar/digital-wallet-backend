@@ -21,8 +21,8 @@ const userSchema = new Schema<IUser>(
       default: IsActive.ACTIVE,
     },
     isVerified: { type: Boolean, default: false },
-    wallet: { type: Schema.Types.ObjectId, ref: "Wallet", required: true },
-    transactions: { type: [Schema.Types.ObjectId], default: [] },
+    wallet: { type: Schema.Types.ObjectId, ref: "Wallet" },
+    transactions: [{ type: Schema.Types.ObjectId, ref: "Transaction" }],
   },
   {
     timestamps: true,
