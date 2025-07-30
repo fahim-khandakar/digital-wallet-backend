@@ -18,6 +18,7 @@ const transactionSchema = new Schema<ITransaction>(
     },
     fee: { type: Number, default: 0 },
     user: { type: Schema.Types.ObjectId, required: true },
+    sendTo: { type: Schema.Types.ObjectId },
   },
   {
     timestamps: true,

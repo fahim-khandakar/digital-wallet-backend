@@ -13,6 +13,7 @@ const router = Router();
 router.post(
   "/create-transaction",
   validateRequest(createTransactionZodSchema),
+  checkAuth(...Object.values(Role)),
   TransactionControllers.createTransaction
 );
 router.get(

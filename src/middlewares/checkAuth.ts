@@ -5,7 +5,7 @@ import AppError from "../error helpers/appError";
 import { verifyToken } from "../utils/jwt";
 import { User } from "../modules/user/user.model";
 import httpStatus from "http-status-codes";
-import { IsActive } from "../modules/user/user.interface";
+import { IsActive } from "../shared/types";
 
 export const checkAuth =
   (...authRoles: string[]) =>

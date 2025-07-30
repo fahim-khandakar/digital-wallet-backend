@@ -9,8 +9,12 @@ import { TransactionServices } from "./transaction.service";
 
 const createTransaction = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const transaction = await TransactionServices.createTransaction(req.body);
-
+    const user = req.user;
+    const transaction = await TransactionServices.createTransaction(
+      req.body,
+      user
+    );
+    console.log("user", user);
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,

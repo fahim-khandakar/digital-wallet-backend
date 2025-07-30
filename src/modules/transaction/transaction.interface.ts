@@ -9,4 +9,5 @@ export interface ITransaction {
   commission?: Types.ObjectId;
   status?: TransactionStatus;
   user: Types.ObjectId;
+  sendTo: Types.ObjectId;
 }

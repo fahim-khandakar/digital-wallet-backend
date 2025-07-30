@@ -1,7 +1,6 @@
 import z from "zod";
 import { IsActive, Role } from "../../shared/types";
 
-// Use enum check for status and roles
 export const createWalletZodSchema = z.object({
   balance: z.number({ message: "Balance must be a number" }).nonnegative(),
   owner: z.string({ message: "Owner must be string" }),
