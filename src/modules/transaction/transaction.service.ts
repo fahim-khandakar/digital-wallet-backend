@@ -12,158 +12,136 @@ const createTransaction = async (
   user: JwtPayload
 ) => {
   const data = payload;
-  console.log("data", user);
-  const isUserExist = await User.findById(user.userId, { new: true }).populate(
-    "wallet"
-  );
+  const isUserExist = await User.findById(user.userId)
+    .populate("wallet")
+    .select("role phone");
 
   if (!isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
   }
 
-  let newUpdatedTransaction;
+  let newUpdatedTransaction = null;
+
+  if (data.type === TransactionType.TOP_UP) {
+    await Wallet.findByIdAndUpdate(
+      isUserExist.wallet?._id,
+      { $inc: { balance: data.amount } },
+      { new: true }
+    );
+
+    newUpdatedTransaction = await Transaction.create({
+      ...data,
+      user: isUserExist._id,
+      sendTo: isUserExist._id,
+      status: "COMPLETED",
+    });
+
+    return newUpdatedTransaction;
+  }
 
   if (
-    isUserExist.role === Role.ADMIN ||
-    isUserExist.role === Role.USER ||
-    isUserExist.role === Role.AGENT
+    data.type === TransactionType.CASH_IN &&
+    data.amount &&
+    (isUserExist.role === Role.ADMIN || isUserExist.role === Role.AGENT)
   ) {
-    if (data.type === TransactionType.TOP_UP) {
-      await Wallet.findByIdAndUpdate(
-        isUserExist.wallet?._id,
-        {
-          $inc: { balance: data.amount },
-        },
-        { new: true }
-      );
-
-      newUpdatedTransaction = await Transaction.create({
-        ...data,
-        status: "COMPLETED",
-      });
-      return newUpdatedTransaction;
-    }
-  } else {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      "You are not authorized for this action"
+    const receiver = await User.findOne({ phone: data.sendTo }).populate(
+      "wallet"
     );
-  }
-  if (isUserExist.role === Role.AGENT) {
-    if (data.type === TransactionType.CASH_IN && data.sendTo) {
-      const receiver = await User.findOne({ phone: data.sendTo }).populate(
-        "wallet"
+    if (!receiver) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Receiver number does not exist"
       );
-      if (!receiver) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "Receiver number does not exist"
-        );
-      }
-      await Wallet.findByIdAndUpdate(
-        receiver.wallet?._id,
-        {
-          $inc: { balance: data.amount },
-        },
-        { new: true }
-      );
-
-      newUpdatedTransaction = await Transaction.create({
-        ...data,
-        status: "COMPLETED",
-      });
-      return newUpdatedTransaction;
     }
-  } else {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      "You are not authorized for this action"
-    );
-  }
-  if (isUserExist.role === Role.AGENT) {
-    if (data.type === TransactionType.CASH_OUT && data.sendTo && data.amount) {
-      await Wallet.findByIdAndUpdate(
-        isUserExist.wallet?._id,
-        {
-          $inc: { balance: -data.amount },
-        },
-        { new: true }
-      );
 
-      const receiver = await User.findOne({ phone: data.sendTo }).populate(
-        "wallet"
-      );
+    await Wallet.findByIdAndUpdate(isUserExist.wallet?._id, {
+      $inc: { balance: -data.amount },
+    });
+    await Wallet.findByIdAndUpdate(receiver.wallet?._id, {
+      $inc: { balance: data.amount },
+    });
 
-      if (!receiver) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "Receiver number does not exist"
-        );
-      }
+    newUpdatedTransaction = await Transaction.create({
+      ...data,
+      user: isUserExist._id,
+      sendTo: receiver._id,
+      status: "COMPLETED",
+    });
 
-      await Wallet.findByIdAndUpdate(
-        receiver.wallet?._id,
-        {
-          $inc: { balance: data.amount },
-        },
-        { new: true }
-      );
-
-      newUpdatedTransaction = await Transaction.create({
-        ...data,
-        status: "COMPLETED",
-      });
-      return newUpdatedTransaction;
-    }
-  } else {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      "Your are not authorized for this action"
-    );
+    return newUpdatedTransaction;
   }
 
-  if (isUserExist.role === Role.AGENT || isUserExist.role === Role.USER) {
-    if (data.type === TransactionType.TRANSFER && data.sendTo && data.amount) {
-      await Wallet.findByIdAndUpdate(
-        isUserExist.wallet?._id,
-        {
-          $inc: { balance: -data.amount },
-        },
-        { new: true }
-      );
-
-      const receiver = await User.findOne({ phone: data.sendTo }).populate(
-        "wallet"
-      );
-
-      if (!receiver) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "Receiver number does not exist"
-        );
-      }
-
-      await Wallet.findByIdAndUpdate(
-        receiver.wallet?._id,
-        {
-          $inc: { balance: data.amount },
-        },
-        { new: true }
-      );
-
-      newUpdatedTransaction = await Transaction.create({
-        ...data,
-        status: "COMPLETED",
-      });
-      return newUpdatedTransaction;
-    }
-  } else {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      "Your are not authorized for this action"
+  if (
+    data.type === TransactionType.CASH_OUT &&
+    data.amount &&
+    (isUserExist.role === Role.ADMIN || isUserExist.role === Role.AGENT)
+  ) {
+    const receiver = await User.findOne({ phone: data.sendTo }).populate(
+      "wallet"
     );
+    if (!receiver) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Receiver number does not exist"
+      );
+    }
+
+    await Wallet.findByIdAndUpdate(isUserExist.wallet?._id, {
+      $inc: { balance: -data.amount },
+    });
+    await Wallet.findByIdAndUpdate(receiver.wallet?._id, {
+      $inc: { balance: data.amount },
+    });
+
+    newUpdatedTransaction = await Transaction.create({
+      ...data,
+      user: isUserExist._id,
+      sendTo: receiver._id,
+      status: "COMPLETED",
+    });
+
+    return newUpdatedTransaction;
   }
-  return newUpdatedTransaction;
+
+  if (data.type === TransactionType.TRANSFER && data.sendTo && data.amount) {
+    const receiver = await User.findOne({ phone: data.sendTo })
+      .populate("wallet")
+      .select("phone");
+    if (!receiver) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Receiver number does not exist"
+      );
+    }
+
+    if (receiver.phone === isUserExist.phone) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "You can't transfer money from you to you"
+      );
+    }
+    await Wallet.findByIdAndUpdate(isUserExist.wallet?._id, {
+      $inc: { balance: -data.amount },
+    });
+    await Wallet.findByIdAndUpdate(receiver.wallet?._id, {
+      $inc: { balance: data.amount },
+    });
+
+    newUpdatedTransaction = await Transaction.create({
+      ...data,
+      user: isUserExist._id,
+      sendTo: receiver._id,
+      status: "COMPLETED",
+    });
+
+    return newUpdatedTransaction;
+  }
+
+  // ❌ jodi kono condition match na kore
+  throw new AppError(
+    httpStatus.FORBIDDEN,
+    "You are not authorized for this action"
+  );
 };
 
 const updateTransaction = async (

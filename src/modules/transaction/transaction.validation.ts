@@ -7,8 +7,8 @@ export const createTransactionZodSchema = z.object({
   fee: z.number().min(0).optional(),
   status: z.enum([...Object.values(TransactionStatus)]).optional(),
   type: z.enum([...Object.values(TransactionType)]),
-  user: z.string().min(1, "User ID is required").optional(),
-  sendTo: z.string().min(1, "User ID is required").optional(),
+  user: z.string().optional(),
+  sendTo: z.string().optional(),
 });
 
 export const updateTransactionZodSchema = z.object({
@@ -17,6 +17,6 @@ export const updateTransactionZodSchema = z.object({
   fee: z.number().min(0).optional(),
   status: z.enum([...Object.values(TransactionStatus)]).optional(),
   type: z.enum([...Object.values(TransactionType)]).optional(),
-  user: z.string().min(1).optional(),
-  sendTo: z.string().min(1, "User ID is required").optional(),
+  user: z.string().optional(),
+  sendTo: z.string().optional(),
 });
