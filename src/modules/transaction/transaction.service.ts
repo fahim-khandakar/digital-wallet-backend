@@ -9,10 +9,10 @@ import { Wallet } from "../wallet/wallet.model";
 
 const createTransaction = async (
   payload: Partial<ITransaction>,
-  user: JwtPayload
+  user: string
 ) => {
   const data = payload;
-  const isUserExist = await User.findById(user.userId)
+  const isUserExist = await User.findById(user)
     .populate("wallet")
     .select("role phone");
 
