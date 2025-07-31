@@ -24,11 +24,12 @@ export const seedAdmin = async () => {
     );
 
     const payload: IUser = {
-      name: "Super admin",
+      name: "Fahim Khandakar",
       role: Role.ADMIN,
       email: envVars.ADMIN_EMAIL,
       password: hashedPassword,
       isVerified: true,
+      phone: "01903994195",
     };
 
     const superAdmin = await User.create(payload);

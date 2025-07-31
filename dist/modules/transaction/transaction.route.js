@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TransactionRoutes = void 0;
+const express_1 = require("express");
+const checkAuth_1 = require("../../middlewares/checkAuth");
+const validateRequest_1 = require("../../middlewares/validateRequest");
+const types_1 = require("../../shared/types");
+const transaction_validation_1 = require("./transaction.validation");
+const transaction_controller_1 = require("./transaction.controller");
+const router = (0, express_1.Router)();
+router.post("/create-transaction", (0, validateRequest_1.validateRequest)(transaction_validation_1.createTransactionZodSchema), (0, checkAuth_1.checkAuth)(...Object.values(types_1.Role)), transaction_controller_1.TransactionControllers.createTransaction);
+router.get("/all-transactions", (0, checkAuth_1.checkAuth)(types_1.Role.ADMIN), transaction_controller_1.TransactionControllers.getAllTransactions);
+router.get("/my-transactions", (0, checkAuth_1.checkAuth)(...Object.values(types_1.Role)), transaction_controller_1.TransactionControllers.getMyTransactions);
+router.get("/:id", (0, checkAuth_1.checkAuth)(types_1.Role.ADMIN), transaction_controller_1.TransactionControllers.getSingleTransaction);
+router.patch("/:id", (0, validateRequest_1.validateRequest)(transaction_validation_1.updateTransactionZodSchema), (0, checkAuth_1.checkAuth)(...Object.values(types_1.Role)), transaction_controller_1.TransactionControllers.updateTransaction);
+exports.TransactionRoutes = router;
