@@ -6,6 +6,7 @@ import { ITransaction } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
 import { User } from "../user/user.model";
 import { Wallet } from "../wallet/wallet.model";
+import { IWallet } from "../wallet/wallet.interface";
 
 const createTransaction = async (
   payload: Partial<ITransaction>,
@@ -19,6 +20,7 @@ const createTransaction = async (
   if (!isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
   }
+  const currentUserWallet = isUserExist.wallet as unknown as IWallet;
 
   let newUpdatedTransaction = null;
 
@@ -54,9 +56,24 @@ const createTransaction = async (
       );
     }
 
+    if (currentUserWallet.balance < data.amount) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Insufficient balance to complete the transaction."
+      );
+    }
+
+    if (isUserExist.phone === String(data.sendTo)) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "You can't transaction in same account"
+      );
+    }
+
     await Wallet.findByIdAndUpdate(isUserExist.wallet?._id, {
       $inc: { balance: -data.amount },
     });
+
     await Wallet.findByIdAndUpdate(receiver.wallet?._id, {
       $inc: { balance: data.amount },
     });
@@ -83,6 +100,27 @@ const createTransaction = async (
       throw new AppError(
         httpStatus.BAD_REQUEST,
         "Receiver number does not exist"
+      );
+    }
+
+    if (currentUserWallet.balance < data.amount) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Insufficient balance to complete the transaction."
+      );
+    }
+
+    if (isUserExist.phone === String(data.sendTo)) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "You can't transaction in same account"
+      );
+    }
+
+    if (receiver.role !== Role.AGENT) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Your receiver is not an agent!"
       );
     }
 
@@ -120,6 +158,20 @@ const createTransaction = async (
         "You can't transfer money from you to you"
       );
     }
+
+    if (currentUserWallet.balance < data.amount) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Insufficient balance to complete the transaction."
+      );
+    }
+
+    if (receiver.role === Role.AGENT) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Your can't transfer money from you to agent!"
+      );
+    }
     await Wallet.findByIdAndUpdate(isUserExist.wallet?._id, {
       $inc: { balance: -data.amount },
     });
@@ -137,7 +189,6 @@ const createTransaction = async (
     return newUpdatedTransaction;
   }
 
-  // ❌ jodi kono condition match na kore
   throw new AppError(
     httpStatus.FORBIDDEN,
     "You are not authorized for this action"
