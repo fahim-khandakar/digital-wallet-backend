@@ -224,8 +224,18 @@ const updateTransaction = async (
   return newUpdatedTransaction;
 };
 
-const getAllTransactions = async () => {
-  const transaction = await Transaction.find();
+export const getAllTransactions = async (verifiedToken: JwtPayload) => {
+  const userRole = verifiedToken.role;
+  const userId = verifiedToken._id;
+
+  let transaction;
+
+  if (userRole === Role.ADMIN) {
+    transaction = await Transaction.find();
+  } else {
+    transaction = await Transaction.find({ user: userId });
+  }
+
   return {
     data: transaction,
   };

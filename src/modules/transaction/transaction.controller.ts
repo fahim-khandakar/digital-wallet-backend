@@ -47,7 +47,8 @@ const updateTransaction = catchAsync(
 
 const getAllTransactions = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await TransactionServices.getAllTransactions();
+    const verifiedToken = req.user as JwtPayload;
+    const result = await TransactionServices.getAllTransactions(verifiedToken);
 
     sendResponse(res, {
       success: true,
