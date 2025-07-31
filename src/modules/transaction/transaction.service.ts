@@ -5,7 +5,7 @@ import { ITransaction } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
 import { User } from "../user/user.model";
 import { Wallet } from "../wallet/wallet.model";
-import { IWallet } from "../wallet/wallet.interface";
+import { IsWalletActive, IWallet } from "../wallet/wallet.interface";
 import mongoose from "mongoose";
 
 const createTransaction = async (
@@ -21,6 +21,26 @@ const createTransaction = async (
       .populate("wallet")
       .select("role phone")
       .session(session);
+
+    const receiver = await User.findOne({ phone: data.sendTo })
+      .populate("wallet")
+      .session(session);
+
+    const receiverWallet = receiver?.wallet as unknown as IWallet;
+    const userWallet = receiver?.wallet as unknown as IWallet;
+
+    if (!receiver) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Receiver number does not exist"
+      );
+    }
+    if (receiverWallet.status === IsWalletActive.BLOCKED) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Receiver wallet is blocked");
+    }
+    if (userWallet.status === IsWalletActive.BLOCKED) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Your wallet is blocked");
+    }
 
     if (!isUserExist) {
       throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
@@ -59,17 +79,6 @@ const createTransaction = async (
       data.amount &&
       (isUserExist.role === Role.ADMIN || isUserExist.role === Role.AGENT)
     ) {
-      const receiver = await User.findOne({ phone: data.sendTo })
-        .populate("wallet")
-        .session(session);
-
-      if (!receiver) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "Receiver number does not exist"
-        );
-      }
-
       if (currentUserWallet.balance < data.amount) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
@@ -118,17 +127,6 @@ const createTransaction = async (
       data.amount &&
       (isUserExist.role === Role.ADMIN || isUserExist.role === Role.AGENT)
     ) {
-      const receiver = await User.findOne({ phone: data.sendTo })
-        .populate("wallet")
-        .session(session);
-
-      if (!receiver) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "Receiver number does not exist"
-        );
-      }
-
       if (currentUserWallet.balance < data.amount) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
@@ -179,18 +177,6 @@ const createTransaction = async (
     }
 
     if (data.type === TransactionType.TRANSFER && data.sendTo && data.amount) {
-      const receiver = await User.findOne({ phone: data.sendTo })
-        .populate("wallet")
-        .select("phone role")
-        .session(session);
-
-      if (!receiver) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "Receiver number does not exist"
-        );
-      }
-
       if (receiver.phone === isUserExist.phone) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
