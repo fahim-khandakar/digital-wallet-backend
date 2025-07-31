@@ -25,11 +25,7 @@ router.get(
   checkAuth(...Object.values(Role)),
   WalletControllers.getMyWallet
 );
-router.get(
-  "/:id",
-  checkAuth(...Object.values(Role)),
-  WalletControllers.getSingleWallet
-);
+router.get("/:id", checkAuth(Role.ADMIN), WalletControllers.getSingleWallet);
 router.patch(
   "/:id",
   validateRequest(updateWalletZodSchema),

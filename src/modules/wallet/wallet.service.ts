@@ -67,7 +67,7 @@ const getSingleWallet = async (id: string) => {
   };
 };
 const getMyWallet = async (id: string) => {
-  const wallet = await Wallet.findById(id);
+  const wallet = await Wallet.findOne({ owner: id });
   return {
     data: wallet,
   };

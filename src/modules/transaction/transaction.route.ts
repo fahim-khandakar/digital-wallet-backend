@@ -28,7 +28,7 @@ router.get(
 );
 router.get(
   "/:id",
-  checkAuth(...Object.values(Role)),
+  checkAuth(Role.ADMIN),
   TransactionControllers.getSingleTransaction
 );
 router.patch(
