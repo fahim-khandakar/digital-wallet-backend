@@ -27,13 +27,10 @@ const updateTransaction = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
 
-    const verifiedToken = req.user;
-
     const payload = req.body;
     const transaction = await TransactionServices.updateTransaction(
       id,
-      payload,
-      verifiedToken as JwtPayload
+      payload
     );
 
     sendResponse(res, {
@@ -47,8 +44,7 @@ const updateTransaction = catchAsync(
 
 const getAllTransactions = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const verifiedToken = req.user as JwtPayload;
-    const result = await TransactionServices.getAllTransactions(verifiedToken);
+    const result = await TransactionServices.getAllTransactions();
 
     sendResponse(res, {
       success: true,
@@ -61,9 +57,7 @@ const getAllTransactions = catchAsync(
 const getMyTransactions = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user as JwtPayload;
-    const result = await TransactionServices.getMyTransaction(
-      decodedToken.userId
-    );
+    const result = await TransactionServices.getMyTransaction(decodedToken.id);
 
     sendResponse(res, {
       success: true,
