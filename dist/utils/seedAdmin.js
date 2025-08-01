@@ -30,11 +30,12 @@ const seedAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
         console.log("Trying to create Admin...", env_1.envVars.ADMIN_EMAIL);
         const hashedPassword = yield bcryptjs_1.default.hash(env_1.envVars.ADMIN_PASSWORD, Number(env_1.envVars.BCRYPT_SALT_ROUND));
         const payload = {
-            name: "Super admin",
+            name: "Fahim Khandakar",
             role: types_1.Role.ADMIN,
             email: env_1.envVars.ADMIN_EMAIL,
             password: hashedPassword,
             isVerified: true,
+            phone: "01903994195",
         };
         const superAdmin = yield user_model_1.User.create(payload);
         const wallet = yield wallet_model_1.Wallet.create({

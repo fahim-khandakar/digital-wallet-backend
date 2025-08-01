@@ -22,6 +22,14 @@ const createTransaction = async (
       .select("role phone")
       .session(session);
 
+    if (!isUserExist) {
+      throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
+    }
+
+    if (data.type === TransactionType.TOP_UP) {
+      payload.sendTo = isUserExist.phone;
+    }
+
     const receiver = await User.findOne({ phone: data.sendTo })
       .populate("wallet")
       .session(session);
@@ -40,10 +48,6 @@ const createTransaction = async (
     }
     if (userWallet.status === IsWalletActive.BLOCKED) {
       throw new AppError(httpStatus.BAD_REQUEST, "Your wallet is blocked");
-    }
-
-    if (!isUserExist) {
-      throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
     }
 
     const currentUserWallet = isUserExist.wallet as unknown as IWallet;
@@ -245,30 +249,50 @@ const updateTransaction = async (
   session.startTransaction();
 
   try {
-    const ifTransactionExist = await Transaction.findById(id).session(session);
+    const existingTransaction = await Transaction.findById(id).session(session);
 
-    if (!ifTransactionExist) {
+    if (!existingTransaction) {
       throw new AppError(httpStatus.NOT_FOUND, "Transaction Not Found");
     }
 
-    if (
+    const isReversedOrPending =
       payload.status === TransactionStatus.REVERSED ||
-      payload.status === TransactionStatus.PENDING
-    ) {
-      await Wallet.findByIdAndUpdate(
-        ifTransactionExist.user,
-        { $inc: { balance: ifTransactionExist.amount } },
-        { session }
-      );
+      payload.status === TransactionStatus.PENDING;
 
-      await Wallet.findByIdAndUpdate(
-        ifTransactionExist.sendTo,
-        { $inc: { balance: ifTransactionExist.amount } },
-        { session }
+    // Optional: Prevent double reversal
+    if (
+      existingTransaction.status === TransactionStatus.REVERSED &&
+      payload.status === TransactionStatus.REVERSED
+    ) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Transaction already reversed"
       );
     }
 
-    const newUpdatedTransaction = await Transaction.findByIdAndUpdate(
+    if (isReversedOrPending && existingTransaction.status !== payload.status) {
+      if (existingTransaction.type === TransactionType.TOP_UP) {
+        await Wallet.findByIdAndUpdate(
+          existingTransaction.user,
+          { $inc: { balance: -existingTransaction.amount } },
+          { session }
+        );
+      } else {
+        await Wallet.findByIdAndUpdate(
+          existingTransaction.user,
+          { $inc: { balance: existingTransaction.amount } },
+          { session }
+        );
+
+        await Wallet.findByIdAndUpdate(
+          existingTransaction.sendTo,
+          { $inc: { balance: -existingTransaction.amount } },
+          { session }
+        );
+      }
+    }
+
+    const updatedTransaction = await Transaction.findByIdAndUpdate(
       id,
       payload,
       {
@@ -281,13 +305,14 @@ const updateTransaction = async (
     await session.commitTransaction();
     session.endSession();
 
-    return newUpdatedTransaction;
+    return updatedTransaction;
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
     throw error;
   }
 };
+
 export const getAllTransactions = async () => {
   const transaction = await Transaction.find();
 
