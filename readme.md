@@ -315,7 +315,3 @@ ADMIN_EMAIL=fahimkhandakar01@gmail.com
 ADMIN_PASSWORD=123456
 
 `````
-
-```
-
-```
