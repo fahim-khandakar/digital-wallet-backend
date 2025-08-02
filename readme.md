@@ -97,11 +97,12 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 - **Access:** Public
 - **Request Body:**
 
-`````json
+```json
 {
   "email": "fahimkhandakar01@gmail.com",
-  "password": "123456",
+  "password": "123456"
 }
+```
 
 ### ✅ Create User
 
@@ -110,13 +111,14 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 - **Access:** Public
 - **Request Body:**
 
-````json
+```json
 {
   "name": "john doe",
   "email": "john@doe.com",
   "password": "F@123456",
   "phone": "01903994110"
 }
+```
 
 ### ✅ Create Admin
 
@@ -133,6 +135,7 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
   "password": "F@123456",
   "phone": "01903994111"
 }
+```
 
 ### ✅ Create Agent
 
@@ -149,6 +152,7 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
   "password": "F@123456",
   "phone": "01903994112"
 }
+```
 
 ### ✅ Update User
 
@@ -165,6 +169,7 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
   "password": "F@123456",
   "phone": "01903994112"
 }
+```
 
 ### ✅ Get Users
 
@@ -184,7 +189,6 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 - **URL:** `/api/v1/user/me`
 - **Access:** ADMIN/USER/AGENT
 
-
 ### ✅ Create Transaction (TOP_UP)
 
 - **Method:** `POST`
@@ -194,9 +198,10 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 
 ```json
 {
-   "amount": 500,
-   "type": "TOP_UP"
+  "amount": 500,
+  "type": "TOP_UP"
 }
+```
 
 ### ✅ Create Transaction (TRANSFER)
 
@@ -207,10 +212,11 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 
 ```json
 {
-   "amount": 500,
-   "type": "TRANSFER",
-   "sendTo": "01533634831"
+  "amount": 500,
+  "type": "TRANSFER",
+  "sendTo": "01533634831"
 }
+```
 
 ### ✅ Create Transaction (CASH_IN)
 
@@ -221,10 +227,11 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 
 ```json
 {
-   "amount": 500,
-   "type": "CASH_IN",
-   "sendTo": "01533634831"
+  "amount": 500,
+  "type": "CASH_IN",
+  "sendTo": "01533634831"
 }
+```
 
 ### ✅ Create Transaction (CASH_OUT)
 
@@ -235,10 +242,11 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 
 ```json
 {
-   "amount": 500,
-   "type": "CASH_OUT",
-   "sendTo": "01533634831"
+  "amount": 500,
+  "type": "CASH_OUT",
+  "sendTo": "01533634831"
 }
+```
 
 ### ✅ Update Transaction
 
@@ -249,10 +257,11 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 
 ```json
 {
-   "amount": 500,
-   "type": "CASH_OUT",
-   "sendTo": "01533634831"
+  "amount": 500,
+  "type": "CASH_OUT",
+  "sendTo": "01533634831"
 }
+```
 
 ### ✅ Get Transactions
 
@@ -290,8 +299,6 @@ A secure digital wallet system built with Node.js, Express, MongoDB, and JWT aut
 - **URL:** `/api/v1/wallet/my-wallet`
 - **Access:** ADMIN/AGENT/USER
 
-
-
 ## 📌 Environment Variables (`.env`)
 
 PORT=5000
@@ -314,4 +321,6 @@ BCRYPT_SALT_ROUND=10
 ADMIN_EMAIL=fahimkhandakar01@gmail.com
 ADMIN_PASSWORD=123456
 
-`````
+```
+
+```
