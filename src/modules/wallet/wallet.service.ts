@@ -54,7 +54,8 @@ const updateWallet = async (
 };
 
 const getAllWallets = async () => {
-  const wallet = await Wallet.find();
+  const wallet = await Wallet.find().populate("owner", "name email role");
+
   return {
     data: wallet,
   };
