@@ -20,7 +20,7 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(IsActive),
       default: IsActive.ACTIVE,
     },
-    isVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: true },
     wallet: { type: Schema.Types.ObjectId, ref: "Wallet" },
     transactions: [{ type: Schema.Types.ObjectId, ref: "Transaction" }],
   },

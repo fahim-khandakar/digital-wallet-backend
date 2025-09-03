@@ -4,6 +4,7 @@ import { User } from "../user/user.model";
 import httpStatus from "http-status-codes";
 import bcryptjs from "bcryptjs";
 import { createUserTokens } from "../../utils/userTokens";
+import { IsActive } from "../../shared/types";
 
 const credentialsLogin = async (payload: Partial<IUser>) => {
   const { email, password } = payload;
@@ -21,6 +22,16 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
 
   if (!isPasswordMatched) {
     throw new AppError(httpStatus.BAD_REQUEST, "Incorrect Password");
+  }
+
+  if (isUserExist.isActive === IsActive.BLOCKED) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `User is ${isUserExist.isActive}`
+    );
+  }
+  if (!isUserExist.isVerified) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User is not verified");
   }
 
   const userTokens = createUserTokens(isUserExist);

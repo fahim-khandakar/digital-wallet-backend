@@ -31,6 +31,12 @@ const createTransaction = (payload, user) => __awaiter(void 0, void 0, void 0, f
             .populate("wallet")
             .select("role phone")
             .session(session);
+        if (!isUserExist) {
+            throw new appError_1.default(http_status_codes_1.default.BAD_REQUEST, "User does not exist");
+        }
+        if (data.type === types_1.TransactionType.TOP_UP) {
+            payload.sendTo = isUserExist.phone;
+        }
         const receiver = yield user_model_1.User.findOne({ phone: data.sendTo })
             .populate("wallet")
             .session(session);
@@ -44,9 +50,6 @@ const createTransaction = (payload, user) => __awaiter(void 0, void 0, void 0, f
         }
         if (userWallet.status === wallet_interface_1.IsWalletActive.BLOCKED) {
             throw new appError_1.default(http_status_codes_1.default.BAD_REQUEST, "Your wallet is blocked");
-        }
-        if (!isUserExist) {
-            throw new appError_1.default(http_status_codes_1.default.BAD_REQUEST, "User does not exist");
         }
         const currentUserWallet = isUserExist.wallet;
         let newUpdatedTransaction = null;
@@ -129,23 +132,34 @@ const updateTransaction = (id, payload) => __awaiter(void 0, void 0, void 0, fun
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
-        const ifTransactionExist = yield transaction_model_1.Transaction.findById(id).session(session);
-        if (!ifTransactionExist) {
+        const existingTransaction = yield transaction_model_1.Transaction.findById(id).session(session);
+        if (!existingTransaction) {
             throw new appError_1.default(http_status_codes_1.default.NOT_FOUND, "Transaction Not Found");
         }
-        if (payload.status === types_1.TransactionStatus.REVERSED ||
-            payload.status === types_1.TransactionStatus.PENDING) {
-            yield wallet_model_1.Wallet.findByIdAndUpdate(ifTransactionExist.user, { $inc: { balance: ifTransactionExist.amount } }, { session });
-            yield wallet_model_1.Wallet.findByIdAndUpdate(ifTransactionExist.sendTo, { $inc: { balance: ifTransactionExist.amount } }, { session });
+        const isReversedOrPending = payload.status === types_1.TransactionStatus.REVERSED ||
+            payload.status === types_1.TransactionStatus.PENDING;
+        // Optional: Prevent double reversal
+        if (existingTransaction.status === types_1.TransactionStatus.REVERSED &&
+            payload.status === types_1.TransactionStatus.REVERSED) {
+            throw new appError_1.default(http_status_codes_1.default.BAD_REQUEST, "Transaction already reversed");
         }
-        const newUpdatedTransaction = yield transaction_model_1.Transaction.findByIdAndUpdate(id, payload, {
+        if (isReversedOrPending && existingTransaction.status !== payload.status) {
+            if (existingTransaction.type === types_1.TransactionType.TOP_UP) {
+                yield wallet_model_1.Wallet.findByIdAndUpdate(existingTransaction.user, { $inc: { balance: -existingTransaction.amount } }, { session });
+            }
+            else {
+                yield wallet_model_1.Wallet.findByIdAndUpdate(existingTransaction.user, { $inc: { balance: existingTransaction.amount } }, { session });
+                yield wallet_model_1.Wallet.findByIdAndUpdate(existingTransaction.sendTo, { $inc: { balance: -existingTransaction.amount } }, { session });
+            }
+        }
+        const updatedTransaction = yield transaction_model_1.Transaction.findByIdAndUpdate(id, payload, {
             new: true,
             runValidators: true,
             session,
         });
         yield session.commitTransaction();
         session.endSession();
-        return newUpdatedTransaction;
+        return updatedTransaction;
     }
     catch (error) {
         yield session.abortTransaction();
