@@ -29,6 +29,7 @@ const user_model_1 = require("../user/user.model");
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const userTokens_1 = require("../../utils/userTokens");
+const types_1 = require("../../shared/types");
 const credentialsLogin = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = payload;
     const isUserExist = yield user_model_1.User.findOne({ email });
@@ -38,6 +39,12 @@ const credentialsLogin = (payload) => __awaiter(void 0, void 0, void 0, function
     const isPasswordMatched = yield bcryptjs_1.default.compare(password, isUserExist.password);
     if (!isPasswordMatched) {
         throw new appError_1.default(http_status_codes_1.default.BAD_REQUEST, "Incorrect Password");
+    }
+    if (isUserExist.isActive === types_1.IsActive.BLOCKED) {
+        throw new appError_1.default(http_status_codes_1.default.BAD_REQUEST, `User is ${isUserExist.isActive}`);
+    }
+    if (!isUserExist.isVerified) {
+        throw new appError_1.default(http_status_codes_1.default.BAD_REQUEST, "User is not verified");
     }
     const userTokens = (0, userTokens_1.createUserTokens)(isUserExist);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

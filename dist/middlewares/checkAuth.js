@@ -22,6 +22,7 @@ const types_1 = require("../shared/types");
 const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const accessToken = req.headers.authorization;
+        console.log("hello world bro", req.headers.authorization);
         if (!accessToken) {
             throw new appError_1.default(403, "No Token Received");
         }

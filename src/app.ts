@@ -11,8 +11,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: [
-      // "https://gilded-centaur-00d566.netlify.app",
-      "http://localhost:5173",
+      "https://candid-crumble-a94dac.netlify.app",
+      // "http://localhost:5173",
       // "http://localhost:3000",
     ],
     credentials: true,

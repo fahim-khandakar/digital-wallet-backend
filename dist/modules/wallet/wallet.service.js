@@ -59,7 +59,7 @@ const updateWallet = (id, payload, decodedToken) => __awaiter(void 0, void 0, vo
     return newUpdatedWallet;
 });
 const getAllWallets = () => __awaiter(void 0, void 0, void 0, function* () {
-    const wallet = yield wallet_model_1.Wallet.find();
+    const wallet = yield wallet_model_1.Wallet.find().populate("owner", "name email role");
     return {
         data: wallet,
     };
